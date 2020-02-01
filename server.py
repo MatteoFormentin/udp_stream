@@ -26,7 +26,7 @@ def decodeAndShowImage(img):
 # MAIN
 
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-serversocket.bind(('127.0.0.1', 7777))
+serversocket.bind(('192.168.0.11', 7777))
 
 print("SERVER STARTED")
 
@@ -36,19 +36,21 @@ seq = -1  # Sequence number of frames
 counter = 0  # Count how many chunks of the current frame already received
 
 while True:
-    d, a = serversocket.recvfrom(512)  # Check if a chunks arrived
+    d, a = serversocket.recvfrom(4096)  # Check if a chunks arrived
     if d:
         # sequence number, number of chunks of the frame, current chunks, chunks data
         packet_seq, tot, curr, data = decodePacket(d)
 
-        if packet_seq != seq:  # if a most recent frame arrived, discard the oldest one
+        # if a most recent frame arrived, discard the oldest one
+        if packet_seq != seq:
             packets = [None] * tot
             seq = packet_seq
             counter = 0
 
-        packets[curr] = data  # Put chunk in order
+        # Put chunk in order
+        packets[curr] = data
         counter += 1
-        
+
         # if number of chunks received = total chunks number of the frame assemble and show the image
         if counter == tot:
             img = b''

@@ -13,7 +13,7 @@ def getVideoFrame():
 
 
 def generatePacket(data, seq_number):
-    packet_dimension = 512 - 30  # Byte dimension of packet
+    packet_dimension = 4096 - 30  # Byte dimension of packet
     # number of packet to be generated to contain all data
     packet_number = math.ceil(len(data)/packet_dimension)
 
@@ -32,26 +32,26 @@ def generatePacket(data, seq_number):
         packet = header + data[start:end]
         packets.append(packet)
 
-        '''print()
+        print()
         print("Header| " + " Seq: " + str(seq_number) + " | Total: " +
-              str(packet_number) + " | Curr: " + str(i) + "|")'''
+              str(packet_number) + " | Curr: " + str(i) + "|")
 
     return packets
 
 
 # MAIN
+# Init
 camera = cv2.VideoCapture(0)  # init the camera
 clientsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 seq_number = 0
 print("CLIENT STARTED")
 
 # Loop
-for i in range(0, 1):
+while True:
     img = getVideoFrame()
-    print(img)
     data = generatePacket(img, seq_number)
 
     for i in data:
-        clientsocket.sendto(i, ('127.0.0.1', 7777))
+        clientsocket.sendto(i, ('192.168.0.11', 7777))
 
     seq_number += 1
