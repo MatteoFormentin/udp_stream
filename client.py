@@ -34,9 +34,8 @@ def generatePacket(data, seq_number):
         packet = header + data[start:end]
         packets.append(packet)
 
-        print()
         print("Header| " + " Seq: " + str(seq_number) + " | Total: " +
-              str(packet_number) + " | Curr: " + str(i) + "|")
+              str(packet_number) + " | Curr: " + str(i) + "|", end ='\r')
 
     return packets
 
