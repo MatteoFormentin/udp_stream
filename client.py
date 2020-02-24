@@ -3,6 +3,8 @@ import cv2
 import math
 import socket
 
+SERVER_IP = '127.0.0.1'
+
 
 def getVideoFrame():
     grabbed, frame = camera.read()  # grab the current frame
@@ -13,7 +15,7 @@ def getVideoFrame():
 
 
 def generatePacket(data, seq_number):
-    packet_dimension = 4096 - 30  # Byte dimension of packet
+    packet_dimension = 4096 - 8  # Byte dimension of packet
     # number of packet to be generated to contain all data
     packet_number = math.ceil(len(data)/packet_dimension)
 
@@ -21,10 +23,10 @@ def generatePacket(data, seq_number):
     for i in range(0, packet_number):
         # Genrate packet header
         # Structure
-        # |Sequence Number(10)|Packet Number(5)|Current Packet(5)|Data(packet_dimension - 20)|
+        # |Sequence Number(2)|Packet Number(2)|Current Packet(2)|Data(packet_dimension - 8)|
         header = seq_number.to_bytes(
-            10, "little", signed=False) + packet_number.to_bytes(
-            10, "little", signed=False) + i.to_bytes(10, "little", signed=False)
+            2, "little", signed=False) + packet_number.to_bytes(
+            2, "little", signed=False) + i.to_bytes(2, "little", signed=False)
 
         # Split data into packets
         start = i * packet_dimension
@@ -52,6 +54,6 @@ while True:
     data = generatePacket(img, seq_number)
 
     for i in data:
-        clientsocket.sendto(i, ('192.168.0.11', 7777))
+        clientsocket.sendto(i, (SERVER_IP, 7777))
 
     seq_number += 1

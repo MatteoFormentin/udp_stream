@@ -4,12 +4,16 @@ import numpy as np
 import math
 import socket
 
+import time
+
+SERVER_IP = '127.0.0.1'
+
 
 def decodePacket(packet):
-    packet_seq = int.from_bytes(packet[0:10], "little", signed=False)
-    tot = int.from_bytes(packet[10:20], "little", signed=False)
-    curr = int.from_bytes(packet[20:30], "little", signed=False)
-    data = packet[30:]
+    packet_seq = int.from_bytes(packet[0:2], "little", signed=False)
+    tot = int.from_bytes(packet[2:4], "little", signed=False)
+    curr = int.from_bytes(packet[4:6], "little", signed=False)
+    data = packet[6:]
     # print("Header| " + " Seq: " + str(packet_seq) + " | Total: " +
     #     str(tot) + " | Curr: " + str(curr) + "|")
 
@@ -26,7 +30,7 @@ def decodeAndShowImage(img):
 # MAIN
 
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-serversocket.bind(('192.168.0.11', 7777))
+serversocket.bind((SERVER_IP, 7777))
 
 print("SERVER STARTED")
 
@@ -35,8 +39,20 @@ packets = []
 seq = -1  # Sequence number of frames
 counter = 0  # Count how many chunks of the current frame already received
 
+rcv_frame_delta = 0
+
+last_reset = time.time()
+
 while True:
     d, a = serversocket.recvfrom(4096)  # Check if a chunks arrived
+
+    delta = time.time() - last_reset
+    if delta > 0.2:
+        last_reset = time.time()
+        print("  FPS: " + str(int(rcv_frame_delta / delta)) + "              ", end='\r')
+        
+        rcv_frame_delta = 0
+
     if d:
         # sequence number, number of chunks of the frame, current chunks, chunks data
         packet_seq, tot, curr, data = decodePacket(d)
@@ -56,7 +72,6 @@ while True:
             img = b''
             for i in packets:
                 img = img + i
-            print()
-            print("IMAGE")
+
+            rcv_frame_delta += 1
             decodeAndShowImage(img)
-            print(seq)
